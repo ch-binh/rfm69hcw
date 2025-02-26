@@ -1,7 +1,8 @@
 #ifndef RFM69_H
 #define RFM69_H
 
-#include "../inc/RFM69registers.h"
+#include <stdio.h>
+#include <stdint.h>
 
 /*======================= CONFIGURATION PARAMETERS ===========================*/
 #define OFFSET_VAL 15 // delay us before sending the signals
@@ -129,16 +130,7 @@ void rfm_send_frame(struct gpio_dt_spec dio_pin, uint8_t toAddress, void *buffer
  */
 void rfm_reset(struct gpio_dt_spec rst_pin);
 
-/**
- * @brief Initializes the RFM module with FSK settings and configuration parameters.
- *
- * @param spispec   SPI device specification fetched from the device tree.
- * @param freqBand  Frequency band for operation (e.g., RF69_315MHZ, RF69_433MHZ).
- * @param nodeID    The unique node ID for this device.
- * @param networkID The network ID for communication grouping.
- * @return bool     True if initialization is successful, false otherwise.
- */
-bool rfm_fsk_reg_init(uint8_t freqBand, uint8_t nodeID, uint8_t networkID);
+
 
 /**
  * @brief Sets the operational mode of the RFM module.

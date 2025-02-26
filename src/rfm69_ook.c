@@ -6,6 +6,8 @@
 
 #include "../inc/rfm69_ook.h"
 #include "../inc/rfm69.h"
+#include "../inc/RFM69registers.h"
+#include "../inc/rfm69_hw.h"
 
 /* variables declaration */
 static struct spi_dt_spec spi_dev;
