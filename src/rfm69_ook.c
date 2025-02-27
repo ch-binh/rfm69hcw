@@ -1,17 +1,7 @@
-#include <stdio.h>
-#include <zephyr/kernel.h>
-
-#include <zephyr/drivers/gpio.h>
-#include <zephyr/drivers/spi.h>
-
 #include "../inc/rfm69_ook.h"
 #include "../inc/rfm69.h"
 #include "../inc/RFM69registers.h"
 #include "../inc/rfm69_hw.h"
-
-/* variables declaration */
-static struct spi_dt_spec spi_dev;
-static struct gpio_dt_spec irq_pin;
 
 /* function declaration*/
 /**
@@ -22,43 +12,23 @@ static struct gpio_dt_spec irq_pin;
  * @param offset The offset time in microseconds to adjust the signal timing.
  * @param is_high Boolean indicating whether to set the pin high (true) or low (false).
  */
-static void rfm_ook_send(struct gpio_dt_spec dio_pin, uint16_t duration, uint16_t offset, bool is_high);
+void rfm69_ook_send(uint16_t duration, uint16_t offset, bool is_high);
 
 /* Functions */
 
-void rfm_ook_init(struct spi_dt_spec spispec,
-                  struct gpio_dt_spec gpiospec,
-                  uint8_t freqBand,
-                  uint8_t pwr_lvl,
-                  uint8_t mode)
+void rfm69_ook_init(uint8_t freqBand, uint8_t pwr_lvl, uint8_t mode)
 {
-    rfm_ook_set_spi_dev(spispec);
-    rfm_ook_set_irq_pin(gpiospec);
-    rfm_ook_reg_init(freqBand);
-    rfm_set_mode(mode);
-    rfm_set_power_Level(pwr_lvl);
+    rfm69_ook_reg_init(freqBand);
+    rfm69_set_mode(mode);
+    rfm69_set_power_Level(pwr_lvl);
 }
 
-void rfm_ook_deinit(void)
+void rfm69_ook_deinit(void)
 {
-    rfm_set_mode(RF69_MODE_SLEEP);
-    gpio_pin_configure_dt(&irq_pin, GPIO_DISCONNECTED);
+    rfm69_set_mode(RF69_MODE_SLEEP);
 }
 
-void rfm_ook_set_spi_dev(struct spi_dt_spec spispec)
-{
-    rfm_set_spi_dev(spispec);
-    spi_dev = spispec;
-}
-
-void rfm_ook_set_irq_pin(struct gpio_dt_spec gpiospec)
-{
-    rfm_set_irq_pin(gpiospec);
-    irq_pin = gpiospec;
-    gpio_pin_configure_dt(&irq_pin, GPIO_OUTPUT_INACTIVE);
-}
-
-bool rfm_ook_reg_init(uint8_t freqBand)
+bool rfm69_ook_reg_init(uint8_t freqBand)
 {
     uint8_t _size = 2;
     uint8_t _values[_size];
@@ -84,15 +54,15 @@ bool rfm_ook_reg_init(uint8_t freqBand)
             {255, 0}};
 
     for (uint8_t i = 0; CONFIG[i][0] != 255; i++)
-        rfm_write_reg(CONFIG[i][0], CONFIG[i][1]);
+        rfm69_spi_write_reg(CONFIG[i][0], CONFIG[i][1]);
 
-    // rfm_set_high_power(); // called regardless if it's a RFM69W or RFM69HW
+    // rfm69_set_high_power(); // called regardless if it's a RFM69W or RFM69HW
     rfm_set_high_power_reg(true);
-    rfm_set_mode(RF69_MODE_STANDBY);
+    rfm69_set_mode(RF69_MODE_STANDBY);
 
     do
     {
-        rfm_read_reg(REG_IRQFLAGS1, _values, _size);
+        rfm69_spi_read_reg(REG_IRQFLAGS1, _values, _size);
     } while ((_values[1] & RF_IRQFLAGS1_MODEREADY) == 0x00); // wait for ModeReady
 
     return true;
@@ -102,54 +72,11 @@ void rfm_ook_set_freq_mhz(float f)
 {
     uint32_t freqHz = f * 1000000;
     freqHz /= RF69_FSTEP; // divide down by FSTEP to get FRF
-    rfm_write_reg(REG_FRFMSB, freqHz >> 16);
-    rfm_write_reg(REG_FRFMID, freqHz >> 8);
-    rfm_write_reg(REG_FRFLSB, freqHz);
+    rfm69_spi_write_reg(REG_FRFMSB, freqHz >> 16);
+    rfm69_spi_write_reg(REG_FRFMID, freqHz >> 8);
+    rfm69_spi_write_reg(REG_FRFLSB, freqHz);
 }
 
-void rfm_ook_send_bt_inq(uint16_t on_time, uint16_t off_time, uint32_t interval, uint32_t density)
-{
-    for (int i = 0; i < density; i++)
-    {
-        // Send the signal high for the specified on_time
-        rfm_ook_send(irq_pin, on_time, 10, 1);
-        // Send the signal low for the specified off_time
-        rfm_ook_send(irq_pin, off_time, 10, 0);
-
-        // Repeat the high and low signal
-        rfm_ook_send(irq_pin, on_time, 10, 1);
-        rfm_ook_send(irq_pin, off_time, 10, 0);
-
-        // Wait for the remaining interval time
-        k_busy_wait(interval - on_time * 2 - off_time * 2);
-    }
-}
-void rfm_ook_send_ibeacon(uint16_t on_time, uint16_t off_time, uint32_t interval, uint32_t density)
-{
-    uint8_t offset = 10;
-    for (int i = 0; i < density; i++)
-    {
-        rfm_ook_send(irq_pin, on_time, offset, ON);
-        rfm_ook_send(irq_pin, off_time, offset, OFF);
-
-        rfm_ook_send(irq_pin, on_time, offset, ON);
-        rfm_ook_send(irq_pin, off_time, offset, OFF);
-
-        rfm_ook_send(irq_pin, on_time, offset, ON);
-        rfm_ook_send(irq_pin, off_time, offset, OFF);
-
-        k_busy_wait(interval - on_time * 3 - off_time * 3);
-    }
-}
-
-/**
- * @brief Sends a custom RXID signal using OOK modulation.
- *
- * @param rxid The RXID to be sent.
- * @param bit_len The duration in microseconds for each bit.
- * @param time_interval The total interval time in microseconds for one cycle of the signal.
- * @param repeat The number of times to repeat the signal pattern.
- */
 void rfm_ook_send_custom_rxid(uint16_t rxid, uint16_t bit_len, uint32_t time_interval, uint32_t repeat)
 {
     // Initialize the bit mask to check each bit of the RXID
@@ -165,31 +92,60 @@ void rfm_ook_send_custom_rxid(uint16_t rxid, uint16_t bit_len, uint32_t time_int
         {
             if ((rxid & rxid_bit_mask) == rxid_bit_mask)
             {
-                rfm_ook_send(irq_pin, bit_len, offset, ON);
+                rfm69_ook_send(bit_len, offset, ON);
             }
             else
             {
-                rfm_ook_send(irq_pin, bit_len, offset, OFF);
+                rfm69_ook_send(bit_len, offset, OFF);
             }
             rxid_bit_mask >>= 1;
         }
         // Ensure the last bit to be 0
-        rfm_ook_send(irq_pin, bit_len, offset, OFF);
-
-        k_busy_wait(time_interval - bit_len * RXID_BIT_SIZE);
+        rfm69_ook_send(bit_len, offset, OFF);
+        rfm69_delay_us(time_interval - bit_len * RXID_BIT_SIZE);
     }
 }
 
-static void rfm_ook_send(struct gpio_dt_spec dio_pin, uint16_t duration, uint16_t offset, bool is_high)
+void rfm69_ook_send(uint16_t duration, uint16_t offset, bool val)
 {
-    if (is_high)
-    {
-        gpio_pin_configure_dt(&dio_pin, GPIO_OUTPUT_ACTIVE);
-    }
-    else
-    {
-        gpio_pin_configure_dt(&dio_pin, GPIO_OUTPUT_INACTIVE);
-    }
+    rfm69_gpio_dio2_write(val);
+    rfm69_delay_us(duration - offset);
+}
 
-    k_busy_wait(duration - offset);
+/*======================================================*/
+/*==================== EXAMPLES ========================*/
+/*======================================================*/
+void rfm_ook_send_bt_inq(uint16_t on_time, uint16_t off_time, uint32_t interval, uint32_t density)
+{
+    for (int i = 0; i < density; i++)
+    {
+        // Send the signal high for the specified on_time
+        rfm69_ook_send(on_time, 10, 1);
+        // Send the signal low for the specified off_time
+        rfm69_ook_send(off_time, 10, 0);
+
+        // Repeat the high and low signal
+        rfm69_ook_send(on_time, 10, 1);
+        rfm69_ook_send(off_time, 10, 0);
+
+        // Wait for the remaining interval time
+        rfm69_delay_us(interval - on_time * 2 - off_time * 2);
+    }
+}
+void rfm_ook_send_ibeacon(uint16_t on_time, uint16_t off_time, uint32_t interval, uint32_t density)
+{
+    uint8_t offset = 10;
+    for (int i = 0; i < density; i++)
+    {
+        rfm69_ook_send(on_time, offset, ON);
+        rfm69_ook_send(off_time, offset, OFF);
+
+        rfm69_ook_send(on_time, offset, ON);
+        rfm69_ook_send(off_time, offset, OFF);
+
+        rfm69_ook_send(on_time, offset, ON);
+        rfm69_ook_send(off_time, offset, OFF);
+
+        rfm69_delay_us(interval - on_time * 3 - off_time * 3);
+    }
 }

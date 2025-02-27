@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "rfm69.h": "c"
+        "rfm69.h": "c",
+        "rfm69registers.h": "c"
     }
 }

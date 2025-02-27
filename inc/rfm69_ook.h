@@ -1,23 +1,21 @@
 #ifndef __RFM69_OOK_H
 #define __RFM69_OOK_H
 
-void rfm_ook_set_spi_dev(struct spi_dt_spec spispec);
-void rfm_ook_set_irq_pin(struct gpio_dt_spec gpiospec);
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+
 /**
  *  @brief Call a sequence of init
  */
-void rfm_ook_init(struct spi_dt_spec spispec,
-                  struct gpio_dt_spec gpiospec, 
-                  uint8_t freqBand,
-                  uint8_t pwr_lvl,
-                  uint8_t mode);
+void rfm69_ook_init(uint8_t freqBand, uint8_t pwr_lvl, uint8_t mode);
 
 /**
  * @brief Deinitializes the RFM module.
  *
  * This function sets the RFM module to standby mode.
  */
-void rfm_ook_deinit(void);
+void rfm69_ook_deinit(void);
 
 /**
  * @brief Initializes the RFM module for OOK (On-Off Keying) modulation.
@@ -25,12 +23,11 @@ void rfm_ook_deinit(void);
  * This function configures the RFM module with the necessary settings to operate in
  * OOK mode
  *
- * @param spispec   SPI device specification fetched from the device tree for communication with the RFM module.
  * @param freqBand The frequency band for operation, specified by one of the RF69_xxx frequency values.
  *
  * @return bool Returns `true` if the configuration is successful, otherwise returns `false`.
  */
-bool rfm_ook_reg_init(uint8_t freqBand);
+bool rfm69_ook_reg_init(uint8_t freqBand);
 
 /**
  * @brief Sets the frequency for OOK modulation in MHz.
@@ -41,38 +38,6 @@ bool rfm_ook_reg_init(uint8_t freqBand);
  * @return void
  */
 void rfm_ook_set_freq_mhz(float f);
-
-/**
- * @brief Sends a hard-coded Bluetooth inquiry-like signal using OOK modulation.
- *
- * @note This function is written to have exact behavior in the datasheet
- *       and should only be used for testing.
- * @param rfm_int_pin  GPIO pin connected to the RFM69 interrupt line.
- * @param on_time      Duration for which the signal is high (ON) in microseconds.
- * @param off_time     Duration for which the signal is low (OFF) in microseconds.
- * @param interval     Time between signal transmissions in microseconds.
- * @param density      Number of times to repeat the signal pattern.
- */
-void rfm_ook_send_bt_inq(uint16_t on_time,
-                         uint16_t off_time,
-                         uint32_t interval,
-                         uint32_t density);
-
-/**
- * @brief Sends a hard-coded ibeacon-like signal using OOK modulation.
- *
- * @note This function is written to have exact behavior in the datasheet
- *       and should only be used for testing.
- * @param rfm_int_pin  GPIO pin connected to the RFM69 interrupt line.
- * @param on_time      Duration for which the signal is high (ON) in microseconds.
- * @param off_time     Duration for which the signal is low (OFF) in microseconds.
- * @param interval     Time between signal transmissions in microseconds.
- * @param density      Number of times to repeat the signal pattern.
- */
-void rfm_ook_send_ibeacon(uint16_t on_time,
-                          uint16_t off_time,
-                          uint32_t interval,
-                          uint32_t density);
 
 /**
  * @brief Sends a custom RXID signal using OOK modulation.
@@ -92,5 +57,15 @@ void rfm_ook_send_custom_rxid(uint16_t rxid,
                               uint16_t bit_len,
                               uint32_t time_interval,
                               uint32_t repeat);
+
+void rfm_ook_send_bt_inq(uint16_t on_time,
+                         uint16_t off_time,
+                         uint32_t interval,
+                         uint32_t density);
+
+void rfm_ook_send_ibeacon(uint16_t on_time,
+                          uint16_t off_time,
+                          uint32_t interval,
+                          uint32_t density);
 
 #endif //__RFM69_OOK_H

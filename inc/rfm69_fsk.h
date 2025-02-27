@@ -12,6 +12,6 @@
  * @param networkID The network ID for communication grouping.
  * @return bool     True if initialization is successful, false otherwise.
  */
-bool rfm_fsk_reg_init(uint8_t freqBand, uint8_t nodeID, uint8_t networkID);
+bool rfm69_fsk_reg_init(uint8_t freqBand, uint8_t nodeID, uint8_t networkID);
 
 #endif // RFM69_FSK_H

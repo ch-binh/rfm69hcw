@@ -2,7 +2,7 @@
 #include "../inc/rfm69.h"
 #include "../inc/RFM69registers.h"
 
-bool rfm_fsk_reg_init(uint8_t freqBand, uint8_t nodeID, uint8_t networkID)
+bool rfm69_fsk_reg_init(uint8_t freqBand, uint8_t nodeID, uint8_t networkID)
 {
     uint8_t _size = 2;
     uint8_t _values[_size];
@@ -54,7 +54,7 @@ bool rfm_fsk_reg_init(uint8_t freqBand, uint8_t nodeID, uint8_t networkID)
         rfm_write_reg(CONFIG[i][0], CONFIG[i][1]);
 
     // setHighPower(IS_RFM69HW); // called regardless if it's a RFM69W or RFM69HW
-    rfm_set_mode(RF69_MODE_STANDBY);
+    rfm69_set_mode(RF69_MODE_STANDBY);
 
     do
     {

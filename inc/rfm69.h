@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 /*======================= CONFIGURATION PARAMETERS ===========================*/
 #define OFFSET_VAL 15 // delay us before sending the signals
@@ -58,9 +59,6 @@
 
 /*======================= FOR FSK =========================== */
 
-void rfm_set_spi_dev(struct spi_dt_spec spispec);
-void rfm_set_irq_pin(struct gpio_dt_spec gpiospec);
-
 /**
  * @brief Reads data from a register of an RFM module using SPI communication.
  *
@@ -102,35 +100,23 @@ int rfm_write_frame(uint8_t *buffer, uint8_t len);
 /**
  * @brief Sends a data frame to a specified address using the RFM module.
  *
- * @param spispec       SPI device specification fetched from the device tree.
- * @param dio_pin       GPIO pin specification fetched from the device tree,
- *                      matching with rfm interrupt dio pin.
  * @param toAddress     Address of the recipient device.
  * @param buffer        Pointer to the data to be sent.
  * @param bufferSize    Size of the data buffer in bytes.
  * @param requestACK    If true, requests an acknowledgment from the recipient.
  */
-void rfm_send(struct gpio_dt_spec dio_pin, uint8_t toAddress, void *buffer, uint8_t bufferSize, bool requestACK);
+void rfm69_send_msg(uint8_t toAddress, void *buffer, uint8_t bufferSize, bool requestACK);
 
 /**
  * @brief Sends a frame of data using the RFM module.
  *
- * @param spispec       SPI device specification fetched from the device tree.
- * @param dio_pin       GPIO pin specification for the DIO line (used to signal "Packet Sent").
  * @param toAddress     Address of the recipient device.
  * @param buffer        Pointer to the data to be sent.
  * @param bufferSize    Size of the data buffer in bytes.
  * @param requestACK    If true, requests an acknowledgment from the recipient.
  * @param sendACK       If true, the frame being sent is an acknowledgment.
  */
-void rfm_send_frame(struct gpio_dt_spec dio_pin, uint8_t toAddress, void *buffer, uint8_t bufferSize, bool requestACK, bool sendACK);
-
-/**
- * @brief Resets the RFM module using the specified GPIO pin.
- */
-void rfm_reset(struct gpio_dt_spec rst_pin);
-
-
+void rfm69_send_msg_frame(uint8_t toAddress, void *buffer, uint8_t bufferSize, bool requestACK, bool sendACK);
 
 /**
  * @brief Sets the operational mode of the RFM module.
@@ -138,7 +124,7 @@ void rfm_reset(struct gpio_dt_spec rst_pin);
  * @param spispec   SPI device specification fetched from the device tree.
  * @param mode      Desired operational mode (e.g., RF69_MODE_TX, RF69_MODE_RX).
  */
-void rfm_set_mode(uint8_t mode);
+void rfm69_set_mode(uint8_t mode);
 
 /**
  * @brief Configures the RFM module for high power transmission.
@@ -148,7 +134,7 @@ void rfm_set_mode(uint8_t mode);
  *
  * @param spispec   SPI device specification fetched from the device tree.
  */
-void rfm_set_high_power(void);
+void rfm69_set_high_power(void);
 
 /**
  * @brief Sets the output power level of the RFM module.
@@ -159,7 +145,7 @@ void rfm_set_high_power(void);
  * @param spispec      SPI device specification fetched from the device tree.
  * @param powerLevel   Desired power level (0 to 31). Values greater than 31 are clamped to 31.
  */
-void rfm_set_power_Level(uint8_t powerLevel);
+void rfm69_set_power_Level(uint8_t powerLevel);
 
 /**
  * @brief Enables or disables the high power mode for the RFM module.
