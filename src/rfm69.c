@@ -2,7 +2,7 @@
 
 #include "../inc/rfm69.h"
 #include "../inc/rfm69_hw.h"
-#include "../inc/RFM69registers.h"
+#include "../inc/rfm69_reg.h"
 
 volatile uint8_t _mode; // current transceiver state
 volatile uint8_t PAYLOADLEN;

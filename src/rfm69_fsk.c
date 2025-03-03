@@ -1,6 +1,6 @@
 #include "../inc/rfm69_fsk.h"
 #include "../inc/rfm69.h"
-#include "../inc/RFM69registers.h"
+
 
 bool rfm69_fsk_reg_init(uint8_t freqBand, uint8_t nodeID, uint8_t networkID)
 {

@@ -24,6 +24,7 @@
 #define RF69_IRQ_NUM 10
 
 /* Power settings */
+#define POWER_LEVEL_MIN 0
 #define POWER_LEVEL_MAX 31
 
 /* CSMA settings */

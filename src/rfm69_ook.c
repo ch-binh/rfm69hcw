@@ -1,7 +1,4 @@
 #include "../inc/rfm69_ook.h"
-#include "../inc/rfm69.h"
-#include "../inc/RFM69registers.h"
-#include "../inc/rfm69_hw.h"
 
 /* function declaration*/
 /**

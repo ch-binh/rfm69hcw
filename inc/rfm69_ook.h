@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "rfm69_hw.h"
+#include "rfm69.h"
+#include "rfm69_reg.h"
+
 /**
  *  @brief Call a sequence of init
  */

@@ -3,6 +3,11 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+
+#include "rfm69_hw.h"
+#include "rfm69.h"
+#include "../inc/rfm69_reg.h"
+
 /**
  * @brief Initializes the RFM module with FSK settings and configuration parameters.
  *
